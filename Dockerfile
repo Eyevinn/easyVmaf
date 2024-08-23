@@ -2,9 +2,9 @@ FROM python:3.8-slim AS base
 
 # setup dependencies versions
 
-ARG	FFMPEG_version=master \
-ARG	VMAF_version=master \
-ARG	easyVmaf_hash=31c59a444445125265044789d0754db8f39f71be	
+ARG	FFMPEG_version=7.0.1 \
+ARG	VMAF_version=3.0.0 \
+ARG	easyVmaf_hash=fbbf5dc8a9d3c2ccc7c16d00364c603b3f29e609
 
 FROM base as build
 
@@ -50,16 +50,16 @@ RUN \
 	ninja -vC build install && \ 
 	mkdir -p /usr/local/share/model  && \
 	cp  -R ../model/* /usr/local/share/model && \
-	rm -rf /tmp/vmaf
+        rm -rf /tmp/vmaf
 
 # install ffmpeg
 WORKDIR     /tmp/ffmpeg
 RUN \
-	export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib/" && \
-	export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/" && \
-	wget https://github.com/FFmpeg/FFmpeg/archive/refs/heads/master.tar.gz  && \
-	tar -xzf ${FFMPEG_version}.tar.gz && \
-	cd FFmpeg-${FFMPEG_version} && \
+	export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib64/" && \
+	export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/lib64/pkgconfig/" && \
+	wget https://www.ffmpeg.org/releases/ffmpeg-${FFMPEG_version}.tar.gz  && \
+	tar -xzf ffmpeg-${FFMPEG_version}.tar.gz && \
+	cd ffmpeg-${FFMPEG_version} && \
 	./configure --enable-libvmaf --enable-version3 --enable-shared --enable-libdav1d && \
 	make -j4 && \
 	make install && \
@@ -73,7 +73,7 @@ RUN \
 
 FROM base AS release
 
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib/"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib64"
 
 RUN \
 	export TZ='UTC' && \
